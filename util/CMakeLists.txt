@@ -1,3 +1,5 @@
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 file(GLOB LIB_SOURCES "*.cc")
 
 add_library(util_debug STATIC ${LIB_SOURCES})
