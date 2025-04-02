@@ -18,7 +18,7 @@ longest_module_length = max([len(x[1]) for x in modules])
 
 
 def count_lines(filename):
-    full_filename = base + '/src/' + filename
+    full_filename = '../src/' + filename
     report = subprocess.run(['sloccount', full_filename], capture_output=True)
     report.check_returncode()
     loc = re.search(r'Total Physical Source Lines of Code \(SLOC\) * = (\d+)',
