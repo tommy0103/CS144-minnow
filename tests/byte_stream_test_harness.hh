@@ -95,8 +95,10 @@ struct Peek : public Expectation<ByteStream>
     }
 
     if ( got != output_ ) {
-      throw ExpectationViolation { "should have had \"" + pretty_print( output_ ) + "\" in buffer, "
-                                   + "but found \"" + pretty_print( got ) + "\"" };
+      std::string sz1 = to_string(output_.size());
+      std::string sz2 = to_string(got.size());
+      throw ExpectationViolation { "should have had \"" + pretty_print( output_ )  + "\"" + "with size " + sz1 + " in buffer, "
+                                   + "but found \"" + pretty_print( got ) + "\"" + "with size " + sz2};
     }
   }
 
@@ -202,8 +204,10 @@ struct ReadAll : public Action<ByteStream>
     std::string got;
     read( bs.reader(), output_.size(), got );
     if ( got != output_ ) {
-      throw ExpectationViolation { "should have read \"" + pretty_print( output_ ) + "\", but found \""
-                                   + pretty_print( got ) + "\"" };
+      std::string sz1 = to_string(output_.size());
+      std::string sz2 = to_string(got.size());
+      throw ExpectationViolation { "should have had \"" + pretty_print( output_ )  + "\"" + "with size " + sz1 + " in buffer, "
+                                   + "but found \"" + pretty_print( got ) + "\"" + "with size " + sz2};
     }
     empty_.execute( bs );
   }

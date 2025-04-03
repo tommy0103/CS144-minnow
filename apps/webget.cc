@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <span>
-#include <string>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -13,9 +13,9 @@ void get_URL( const string& host, const string& path )
   // cerr << "Function called: get_URL(" << host << ", " << path << ")\n";
   // cerr << "Warning: get_URL() has not been implemented yet.\n";
   TCPSocket socket;
-  Address address(host, "http");
+  Address address( host, "http" );
   // cout << address.to_string() << endl;
-  socket.connect(address);
+  socket.connect( address );
   // vector<Ref<string>> buffer;
   ostringstream oss;
   oss << "GET " << path << " HTTP/1.1" << "\r\n";
@@ -25,10 +25,10 @@ void get_URL( const string& host, const string& path )
   // cout << line << endl;
   // buffer.push_back(Ref<string>(std::move(line)));
   // socket.write(buffer);
-  socket.write(line);
+  socket.write( line );
   // cout << socket.write_count() << endl;
-  while(!socket.eof()) {
-    socket.read(line);
+  while ( !socket.eof() ) {
+    socket.read( line );
     cout << line;
   }
   socket.close();

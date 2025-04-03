@@ -7,7 +7,9 @@ class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output ) : pendingBytes(), pendingId(0), overId(-1), output_( std::move( output ) ) {}
+  explicit Reassembler( ByteStream&& output )
+    : pendingBytes(), pendingId( 0 ), overId( -1 ), output_( std::move( output ) )
+  {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -41,7 +43,11 @@ public:
 
   // Access output stream writer, but const-only (can't write from outside)
   const Writer& writer() const { return output_.writer(); }
-
+private:
+  auto truncate_segment(uint64_t first_index, std::string& data);
+  void check_coalesce_segment();
+  void coalesce_segment(uint64_t first_index, const std::string& data);
+  void push_continuous_segment(Writer &w);
 private:
   std::map<uint64_t, std::string> pendingBytes;
   uint64_t pendingId, overId;
