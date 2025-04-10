@@ -40,6 +40,10 @@ auto Reassembler::truncate_segment(uint64_t first_index, std::string& data) {
 
   // pendingId - r.bytes_popped() == w.available_capacity()
   // [pendingId, first_index + delta + data.size()]
+  if(first_index + offset + data.size() < first_index) {
+    return std::make_pair(offset, false);
+  }
+
   uint64_t capacity_ = output_.writer().available_capacity();
   uint64_t segment_size = first_index + offset + data.size() - pendingId;
   uint64_t remove_size = segment_size - capacity_;

@@ -7,47 +7,56 @@ void TCPReceiver::receive( TCPSenderMessage message )
 {
   if(message.SYN) {
     zero_point_ = Wrap32::wrap(0, message.seqno);
-    SYN_ = true;
-    FIN_ = false;
-  }
-  if(message.FIN) {
-    FIN_ = true;
+    is_connection_started_ = true;
+    is_connection_ended_ = false;
   }
   if(message.RST) {
     reassembler_.reader().set_error();
     return;
   }
-  uint64_t index = message.seqno.unwrap(zero_point_, check_point_);
+  if(message.FIN) {
+    is_connection_ended_ = true;
+  }
+
+  if(!is_connection_started_) {
+    return;
+  }
+  
+  uint64_t absolute_index = message.seqno.unwrap(zero_point_, check_point_);
   if(!message.SYN) {
-    if(index == 0) {
+    if(absolute_index == 0) {
       return;
-    } 
-    index = index - 1;
+    }
+    absolute_index--;
   }
-  if(index - check_point_ >= (1ull << 32)) {
-    check_point_ += (1ull << 32);
+  const uint64_t SEQUENCE_SPACE_SIZE = 1ull << 32;
+  if(absolute_index - check_point_ >= SEQUENCE_SPACE_SIZE) {
+    check_point_ += SEQUENCE_SPACE_SIZE;
   }
-  reassembler_.insert(index, message.payload, message.FIN);
+  reassembler_.insert(absolute_index, message.payload, message.FIN);
 }
 
 TCPReceiverMessage TCPReceiver::send() const
 {
-  TCPReceiverMessage msg;
+  TCPReceiverMessage response;
   if(reassembler_.writer().has_error()) {
-    msg.RST = true;
-    return msg;
+    response.RST = true;
+    return response;
   }
-  uint64_t bytes_received = reassembler_.writer().bytes_pushed();
-  if(SYN_) {
-    if(reassembler_.count_bytes_pending() == 0) {
-      msg.ackno = Wrap32::wrap(bytes_received, zero_point_) + SYN_ + FIN_;
+  
+  if(is_connection_started_) {
+    uint64_t bytes_received = reassembler_.writer().bytes_pushed();
+    uint64_t ackno_value = bytes_received + 1;
+    bool all_bytes_reassembled = (reassembler_.count_bytes_pending() == 0);
+    if(all_bytes_reassembled && is_connection_ended_) {
+      ackno_value++;
     }
-    else {
-      msg.ackno = Wrap32::wrap(bytes_received, zero_point_) + SYN_;
-    }
+    
+    response.ackno = Wrap32::wrap(ackno_value, zero_point_);
   }
-  uint64_t bytes_available = reassembler_.writer().available_capacity();
-  if(bytes_available >= (1 << 16)) bytes_available = (1 << 16) - 1;
-  msg.window_size = bytes_available;
-  return msg;
+  const uint64_t MAX_WINDOW_SIZE = (1 << 16) - 1;
+  uint64_t available_capacity = reassembler_.writer().available_capacity();
+  
+  response.window_size = min(available_capacity, MAX_WINDOW_SIZE);
+  return response;
 }
